@@ -5,11 +5,15 @@ from datetime import datetime
 import os
 
 # --- MODEL AYARLARI ---
-# Secrets'tan anahtarı çekip konfigüre ediyoruz
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# API anahtarını güvenli kasadan alıyoruz
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+except Exception as e:
+    st.error("Secrets kısmında GEMINI_API_KEY bulunamadı!")
 
-# Kabul edilen model ismini buraya yazdık
-model = genai.GenerativeModel('gemini-pro')
+# 404 Hatasını önlemek için en güvenli model ismini seçiyoruz
+# Bu sürüm genellikle v1beta ile en uyumlu olandır.
+MODEL_NAME = 'models/gemini-1.5-flash'
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
@@ -73,15 +77,28 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
             cevap = "✨ Bunu hafıza merkezime kaydettim, Feyza. Asla unutmayacağım."
         else:
             try:
-                # Sistemin Feyza'yı tanıması için talimat:
+                # Modeli tam ismiyle çağırıyoruz
+                model = genai.GenerativeModel(MODEL_NAME)
+                
                 full_prompt = (
                     f"Sen Feyza'nın asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. "
                     f"Hafıza: {gecmis_bilgiler}\n\nSoru: {prompt}"
                 )
+                
                 response = model.generate_content(full_prompt)
-                cevap = response.text if response.text else "Cevap üretilemedi."
+                
+                if response.text:
+                    cevap = response.text
+                else:
+                    cevap = "Cevap üretilemedi."
             except Exception as e:
-                cevap = f"Ufak bir sorun: {str(e)}"
+                # Eğer 404 alırsak, otomatik olarak 'gemini-pro'ya düşmesi için:
+                try:
+                    model = genai.GenerativeModel('gemini-pro')
+                    response = model.generate_content(prompt)
+                    cevap = response.text
+                except:
+                    cevap = f"Teknik bir sorun: {str(e)}. Lütfen API anahtarını yenilemeyi dene."
         
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
