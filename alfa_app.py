@@ -5,10 +5,14 @@ from datetime import datetime
 import os
 
 # --- MODEL AYARLARI ---
-API_KEY = "AIzaSyAMNVkqqaFTRjPU-CYbDObfu-EtHmDldHU" 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('models/gemini-2.5-flash')
+import streamlit as st
+import google.generativeai as genai
 
+# API anahtarını kasadan (Secrets) güvenli bir şekilde çekiyoruz
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# Model ismini en hızlı ve güncel sürümle güncelledik
+model = genai.GenerativeModel('gemini-1.5-flash')
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
 def hafiza_yukle():
