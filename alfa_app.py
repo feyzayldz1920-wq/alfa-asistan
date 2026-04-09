@@ -106,9 +106,16 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
             hafiza_kaydet(prompt)
             cevap = "✨ Bunu hafıza merkezime kaydettim, Feyza. Asla unutmayacağım."
         else:
+            # Burayı daha güvenli bir yapıya kavuşturuyoruz
             full_prompt = f"Sen Feyza'nın premium asistanı ALFA'sın. Feyza akademik bir araştırmacı ve 27 Temmuz'da Erzurum'da evleniyor. Bilgiler: {gecmis_bilgiler}. Soru: {prompt}"
-            response = model.generate_content(full_prompt)
-            cevap = response.text
+            
+            # Köşeli parantez ekleyerek gönderiyoruz (Hata almamak için kritik!)
+            response = model.generate_content([full_prompt])
+            
+            if response.text:
+                cevap = response.text
+            else:
+                cevap = "Üzgünüm Feyza, bir cevap oluşturamadım."
         
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
