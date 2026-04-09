@@ -5,15 +5,20 @@ from datetime import datetime
 import os
 
 # --- MODEL AYARLARI ---
-# 404 hatasını ve v1beta çakışmasını önleyen konfigürasyon
+import streamlit as st
+import google.generativeai as genai
+
+# Anahtarı çekmenin en garanti yolu budur:
 try:
-    if "GEMINI_API_KEY" in st.secrets:
-        # transport='rest' parametresi 404 hatalarını baypas etmek için kritiktir
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
+    # Eğer Secrets içindeki isim farklıysa hata vermemesi için:
+    api_key = st.secrets.get("GEMINI_API_KEY") 
+    
+    if api_key:
+        genai.configure(api_key=api_key, transport='rest')
     else:
-        st.error("Secrets kısmında GEMINI_API_KEY eksik!")
+        st.error("DİKKAT: Streamlit Secrets içinde 'GEMINI_API_KEY' bulunamadı!")
 except Exception as e:
-    st.error(f"Yapılandırma hatası: {e}")
+    st.error(f"Secrets okuma hatası: {e}")
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
