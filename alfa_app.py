@@ -4,11 +4,13 @@ import json
 from datetime import datetime
 import os
 
-# Eski MODEL_NAME satırını sil, yerine bunu yaz:
-MODEL_NAME = 'gemini-1.5-flash' 
+# --- MODEL AYARLARI ---
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+except:
+    st.error("API Anahtarı bulunamadı! Secrets kısmını kontrol et.")
 
-# Ve hemen altına şu satırı ekleyerek sürümü zorla:
-model = genai.GenerativeModel(model_name=MODEL_NAME)
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
 
@@ -66,30 +68,24 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
     gecmis_bilgiler = ", ".join(hafiza["bilgiler"]) if hafiza["bilgiler"] else "Henüz kayıt yok."
 
     with st.chat_message("assistant"):
-        if any(kelime in prompt.lower() for kelime in ["öğren", "unutma", "kaydet"]):
-            hafiza_kaydet(prompt)
-            cevap = "✨ Bunu hafıza merkezime kaydettim, Feyza. Asla unutmayacağım."
-        else:
+        cevap = ""
+        # DENENECEK MODELLER LİSTESİ (En garantili isimler)
+        modeller = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro']
+        
+        success = False
+        for model_adi in modeller:
             try:
-                # Model nesnesini burada oluşturuyoruz
-                model = genai.GenerativeModel(MODEL_NAME)
-                
-                full_prompt = (
-                    f"Sen Feyza'nın asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. "
-                    f"Hafıza: {gecmis_bilgiler}\n\nSoru: {prompt}"
-                )
-                
+                model = genai.GenerativeModel(model_adi)
+                full_prompt = f"Sen Feyza'nın asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. Hafıza: {gecmis_bilgiler}\n\nSoru: {prompt}"
                 response = model.generate_content(full_prompt)
                 cevap = response.text
-                
-            except Exception as e:
-                # Eğer ilk deneme (flash) 404 verirse, yedek model (pro) devreye girer:
-                try:
-                    model_yedek = genai.GenerativeModel('gemini-pro')
-                    response = model_yedek.generate_content(prompt)
-                    cevap = response.text
-                except Exception as e2:
-                    cevap = f"Teknik bir sorun: {str(e)}. Lütfen API anahtarını Secrets kısmında yenile."
+                success = True
+                break # Biri çalışırsa döngüden çık
+            except:
+                continue # Hata alırsan bir sonrakini dene
+        
+        if not success:
+            cevap = "⚠️ Tüm model denemeleri başarısız oldu. Lütfen API anahtarını Google AI Studio'dan yenile ve Secrets'a koy."
 
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
