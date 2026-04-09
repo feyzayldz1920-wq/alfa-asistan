@@ -61,13 +61,13 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Giriş ve Zeka
+# Giriş ve Zeka (Hata Almayan Güncel Versiyon)
 if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     hafiza = hafiza_yukle()
-    # Hafıza boşsa patlamaması için kontrol:
     gecmis_bilgiler = ", ".join(hafiza["bilgiler"]) if hafiza["bilgiler"] else "Henüz kayıt yok."
 
     with st.chat_message("assistant"):
@@ -76,18 +76,26 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
             cevap = "✨ Bunu hafıza merkezime kaydettim, Feyza. Asla unutmayacağım."
         else:
             try:
-                # TALİMATI VE SORUYU AYIRARAK GÖNDERİYORUZ (InvalidArgument çözümüdür)
-                sistem_mesaji = f"Sen Feyza'nın premium asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. Önceki bilgiler: {gecmis_bilgiler}"
+                # MODELİ BURADA TEKRAR VE EN GÜNCEL HALİYLE TANIMLIYORUZ
+                # v1beta hatasını aşmak için en sade ismi kullanıyoruz
+                alfa_beyin = genai.GenerativeModel('gemini-1.5-flash')
                 
-                # Bu yöntem en güvenli olanıdır:
-                response = model.generate_content(f"{sistem_mesaji}\n\nKullanıcı: {prompt}")
+                sistem_talimati = (
+                    f"Sen Feyza'nın premium asistanı ALFA'sın. "
+                    f"Feyza akademik bir araştırmacı ve 27 Temmuz'da Erzurum'da evleniyor. "
+                    f"Hafıza: {gecmis_bilgiler}"
+                )
                 
-                if response and response.text:
+                # En stabil cevap alma yöntemi
+                response = alfa_beyin.generate_content(f"{sistem_talimati}\n\nSoru: {prompt}")
+                
+                if response.text:
                     cevap = response.text
                 else:
-                    cevap = "Üzgünüm Feyza, şu an cevap üretemedim."
+                    cevap = "Üzgünüm Feyza, şu an bir cevap oluşturamadım."
             except Exception as e:
-                cevap = f"Teknik bir sorun oluştu, ama çözeceğiz: {str(e)}"
+                # Eğer hala hata varsa, hatayı gizleme ki ne olduğunu görelim
+                cevap = f"Sistemsel bir durum oluştu: {str(e)}"
         
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
