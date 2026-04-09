@@ -12,7 +12,7 @@ except:
     st.error("API Anahtarı bulunamadı! Lütfen Secrets kısmını kontrol et.")
 
 # Model ismini şu şekilde (başında models/ olacak şekilde) güncelle:
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+model = genai.GenerativeModel('model = genai.GenerativeModel('gemini-1.5-flash-latest')')
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
