@@ -5,13 +5,12 @@ from datetime import datetime
 import os
 
 # --- MODEL AYARLARI ---
-# API anahtarını güvenli kasadan alıyoruz
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-except:
-    st.error("API Anahtarı bulunamadı! Lütfen Secrets kısmını kontrol et.")
+# Secrets'tan anahtarı çekip konfigüre ediyoruz
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
+# Kabul edilen model ismini buraya yazdık
 model = genai.GenerativeModel('gemini-pro')
+
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
 
@@ -30,7 +29,7 @@ def hafiza_kaydet(yeni_bilgi):
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(hafiza, f, ensure_ascii=False, indent=4)
 
-# --- MODERN UI (ÖZEL TASARIM) ---
+# --- MODERN UI ---
 st.set_page_config(page_title="ALFA | Premium Assistant", page_icon="✨", layout="wide")
 
 st.markdown("""
@@ -51,7 +50,6 @@ with st.sidebar:
     st.caption("Zaman Algısı Makalesi: %75 tamamlandı.")
 
 st.markdown('<p class="main-title">ALFA</p>', unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #555;'>Akademik Vizyon & Yaşam Ortaklığı</p>", unsafe_allow_html=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -61,7 +59,6 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Giriş ve Zeka
-# Giriş ve Zeka (Hata Almayan Güncel Versiyon)
 if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -76,26 +73,15 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
             cevap = "✨ Bunu hafıza merkezime kaydettim, Feyza. Asla unutmayacağım."
         else:
             try:
-                # MODELİ BURADA TEKRAR VE EN GÜNCEL HALİYLE TANIMLIYORUZ
-                # v1beta hatasını aşmak için en sade ismi kullanıyoruz
-                alfa_beyin = genai.GenerativeModel('gemini-1.5-flash')
-                
-                sistem_talimati = (
-                    f"Sen Feyza'nın premium asistanı ALFA'sın. "
-                    f"Feyza akademik bir araştırmacı ve 27 Temmuz'da Erzurum'da evleniyor. "
-                    f"Hafıza: {gecmis_bilgiler}"
+                # Sistemin Feyza'yı tanıması için talimat:
+                full_prompt = (
+                    f"Sen Feyza'nın asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. "
+                    f"Hafıza: {gecmis_bilgiler}\n\nSoru: {prompt}"
                 )
-                
-                # En stabil cevap alma yöntemi
-                response = alfa_beyin.generate_content(f"{sistem_talimati}\n\nSoru: {prompt}")
-                
-                if response.text:
-                    cevap = response.text
-                else:
-                    cevap = "Üzgünüm Feyza, şu an bir cevap oluşturamadım."
+                response = model.generate_content(full_prompt)
+                cevap = response.text if response.text else "Cevap üretilemedi."
             except Exception as e:
-                # Eğer hala hata varsa, hatayı gizleme ki ne olduğunu görelim
-                cevap = f"Sistemsel bir durum oluştu: {str(e)}"
+                cevap = f"Ufak bir sorun: {str(e)}"
         
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
