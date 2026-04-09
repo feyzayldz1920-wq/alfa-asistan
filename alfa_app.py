@@ -4,10 +4,13 @@ import json
 from datetime import datetime
 import os
 
-# --- MODEL TANIMLAMA (KESİN ÇÖZÜM) ---
-# 'gemini-pro' yerine bu tam adı yaz:
-MODEL_NAME = 'models/gemini-1.5-flash'
-model = genai.GenerativeModel(MODEL_NAME)
+# --- MODEL AYARLARI (KRİTİK DÜZELTME) ---
+# Secrets'tan anahtarı alıp sisteme zorla tanıtıyoruz
+try:
+    API_KEY = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=API_KEY)
+except Exception as e:
+    st.error("Secrets kısmında 'GEMINI_API_KEY' bulunamadı!")
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
@@ -67,10 +70,10 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
 
     with st.chat_message("assistant"):
         cevap = ""
-        # PC'de çalışan modelleri listeye ekledik
+        # Google'ın reddedemeyeceği modeller (Öncelik sırasıyla)
         modeller = [
-            'gemini-2.0-flash', 
             'gemini-1.5-flash', 
+            'models/gemini-1.5-flash',
             'gemini-pro'
         ]
         
@@ -79,9 +82,12 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
         
         for model_adi in modeller:
             try:
-                model = genai.GenerativeModel(model_adi)
+                # Modeli her denemede yeniden ayağa kaldırıyoruz
+                alfa_brain = genai.GenerativeModel(model_adi)
                 full_prompt = f"Sen Feyza'nın asistanı ALFA'sın. Feyza araştırmacıdır ve 27 Temmuz'da Erzurum'da evleniyor. Hafıza: {gecmis_bilgiler}\n\nSoru: {prompt}"
-                response = model.generate_content(full_prompt)
+                
+                # Yanıt oluşturma
+                response = alfa_brain.generate_content(full_prompt)
                 cevap = response.text
                 success = True
                 break
@@ -90,7 +96,7 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
                 continue
         
         if not success:
-            cevap = f"⚠️ Bağlantı hatası: {son_hata}. Lütfen Streamlit Secrets kısmındaki anahtarı kontrol et."
+            cevap = f"⚠️ Bağlantı hatası: {son_hata}. Lütfen yeni bir API KEY al ve Secrets kısmına yapıştır."
 
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
