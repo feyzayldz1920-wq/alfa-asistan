@@ -13,7 +13,7 @@ except Exception as e:
 
 # 404 Hatasını önlemek için en güvenli model ismini seçiyoruz
 # Bu sürüm genellikle v1beta ile en uyumlu olandır.
-MODEL_NAME = 'models/gemini-1.5-flash'
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
