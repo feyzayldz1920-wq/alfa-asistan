@@ -4,12 +4,10 @@ import json
 from datetime import datetime
 import os
 
-# --- MODEL AYARLARI (GÜNCEL) ---
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
-# 'gemini-pro' yerine tam sürüm adını kullanıyoruz
-# Bu isim v1beta hatasını baypas eder
-model = genai.GenerativeModel('gemini-1.5-flash')
+# --- MODEL TANIMLAMA (KESİN ÇÖZÜM) ---
+# 'gemini-pro' yerine bu tam adı yaz:
+MODEL_NAME = 'models/gemini-1.5-flash'
+model = genai.GenerativeModel(MODEL_NAME)
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
