@@ -4,18 +4,11 @@ import json
 from datetime import datetime
 import os
 
-# --- MODEL AYARLARI ---
-# Secrets'tan anahtarı çekiyoruz
-try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-except:
-    st.error("API Anahtarı bulunamadı! Secrets kısmını kontrol et.")
+# Eski MODEL_NAME satırını sil, yerine bunu yaz:
+MODEL_NAME = 'gemini-1.5-flash' 
 
-# 404 hatasını çözen en garantili model tanımlama yöntemi
-# Eğer 'gemini-1.5-flash' hata verirse 'gemini-pro' denenecek şekilde ayarlandı.
-MODEL_NAME = 'gemini-1.5-flash'
-
+# Ve hemen altına şu satırı ekleyerek sürümü zorla:
+model = genai.GenerativeModel(model_name=MODEL_NAME)
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
 
