@@ -4,13 +4,12 @@ import json
 from datetime import datetime
 import os
 
-# --- MODEL AYARLARI ---
-try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    # Mobildeki bağlantı sorunlarını çözmek için transport='rest' ekledik
-    genai.configure(api_key=api_key, transport='rest')
-except Exception as e:
-    st.error(f"API Anahtarı Hatası: {e}")
+# --- MODEL AYARLARI (GÜNCEL) ---
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# 'gemini-pro' yerine tam sürüm adını kullanıyoruz
+# Bu isim v1beta hatasını baypas eder
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
