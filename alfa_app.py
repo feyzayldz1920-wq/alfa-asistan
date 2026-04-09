@@ -7,9 +7,10 @@ import os
 # --- MODEL AYARLARI ---
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-except:
-    st.error("API Anahtarı bulunamadı! Secrets kısmını kontrol et.")
+    # Mobildeki bağlantı sorunlarını çözmek için transport='rest' ekledik
+    genai.configure(api_key=api_key, transport='rest')
+except Exception as e:
+    st.error(f"API Anahtarı Hatası: {e}")
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
@@ -69,10 +70,16 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
 
     with st.chat_message("assistant"):
         cevap = ""
-        # DENENECEK MODELLER LİSTESİ (En garantili isimler)
-        modeller = ['gemini-1.5-flash', 'models/gemini-1.5-flash', 'gemini-pro']
+        # PC'de çalışan modelleri listeye ekledik
+        modeller = [
+            'gemini-2.0-flash', 
+            'gemini-1.5-flash', 
+            'gemini-pro'
+        ]
         
         success = False
+        son_hata = ""
+        
         for model_adi in modeller:
             try:
                 model = genai.GenerativeModel(model_adi)
@@ -80,12 +87,13 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
                 response = model.generate_content(full_prompt)
                 cevap = response.text
                 success = True
-                break # Biri çalışırsa döngüden çık
-            except:
-                continue # Hata alırsan bir sonrakini dene
+                break
+            except Exception as e:
+                son_hata = str(e)
+                continue
         
         if not success:
-            cevap = "⚠️ Tüm model denemeleri başarısız oldu. Lütfen API anahtarını Google AI Studio'dan yenile ve Secrets'a koy."
+            cevap = f"⚠️ Bağlantı hatası: {son_hata}. Lütfen Streamlit Secrets kısmındaki anahtarı kontrol et."
 
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
