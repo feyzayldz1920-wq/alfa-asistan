@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 
-# --- KRİTİK BAĞLANTI (404 HATASINI ÖNLEYEN VERSİYON) ---
+# --- KRİTİK BAĞLANTI (404/V1BETA HATASINI ÖNLEYEN VERSİYON) ---
 if "GEMINI_API_KEY" not in st.secrets:
     st.error("❌ HATA: Secrets kısmında 'GEMINI_API_KEY' bulunamadı!")
     st.stop()
@@ -10,8 +10,8 @@ try:
     # transport='rest' parametresi 404/v1beta hatalarını baypas etmek için eklendi
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
     
-    # Model ismini tam yol olarak yazıyoruz (Hata payını sıfırlamak için)
-    model = genai.GenerativeModel('models/gemini-1.5-flash')
+    # Model ismini Google'ın en yeni kabul ettiği formatta yazıyoruz
+    model = genai.GenerativeModel('gemini-1.5-flash')
     bağlantı_tamam = True
 except Exception as e:
     st.error(f"⚠️ Yapılandırma Hatası: {e}")
@@ -43,12 +43,12 @@ if prompt := st.chat_input("Feyza, bugün neyi başarmak istersin?"):
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
             else:
-                st.warning("Google'dan boş yanıt döndü. Lütfen tekrar dene.")
+                st.warning("Google'dan boş yanıt döndü.")
                 
         except Exception as e:
-            # Eğer hala 404 verirse gemini-pro modelini yedek olarak deniyoruz
+            # Eğer 1.5-flash yine nazlanırsa, gemini-pro modelini yedek olarak deniyoruz
             try:
-                model_yedek = genai.GenerativeModel('models/gemini-pro')
+                model_yedek = genai.GenerativeModel('gemini-pro')
                 response = model_yedek.generate_content(full_prompt)
                 st.markdown(response.text)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
