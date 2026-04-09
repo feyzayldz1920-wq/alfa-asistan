@@ -5,15 +5,11 @@ from datetime import datetime
 import os
 
 # --- MODEL AYARLARI ---
-# API anahtarını güvenli kasadan alıyoruz
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-except Exception as e:
-    st.error("Secrets kısmında GEMINI_API_KEY bulunamadı!")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# 404 Hatasını önlemek için en güvenli model ismini seçiyoruz
-# Bu sürüm genellikle v1beta ile en uyumlu olandır.
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Hataya sebep olan değişkeni burada tanımlıyoruz:
+MODEL_NAME = 'gemini-1.5-flash' 
+model = genai.GenerativeModel(MODEL_NAME)
 
 # --- HAFIZA SİSTEMİ ---
 MEMORY_FILE = "alfa_hafiza.json"
